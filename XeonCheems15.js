@@ -16639,7 +16639,7 @@ break
 				const hasil = await tiktokDl(text);
 				XeonStickWait()
 				if (hasil.size_nowm) {
-					await XeonBotInc.sendFileUrl(m.chat, hasil.data[1].url, `*╮┄╌〔 ≪ مـارو بـوت ≫ 〕╌╌•*\n*┆✔️ تفضل طلبك*\n*╯────ׂ─ׂ─ׂ─ׂ─────╌─╌─╌*`, m)
+					await XeonBotInc.sendFileUrl(m.chat, hasil.data `*╮┄╌〔 ≪ مـارو بـوت ≫ 〕╌╌•*\n*┆✔️ تفضل طلبك*\n*╯────ׂ─ׂ─ׂ─ׂ─────╌─╌─╌*`, m)
 				} else {
 					for (let i = 0; i < hasil.data.length; i++) {
 						await XeonBotInc.sendFileUrl(m.chat, hasil.data[i].url, `*🚀Image:* ${i+1}`, m)
