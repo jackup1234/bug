@@ -17,19 +17,24 @@ global.socialm = "GitHub: DGXeon" //ur github or insta name
 global.location = "India, Mizoram, Aizawl" //ur location
 
 //new
-global.botname = '𝑀𝑉𝑅𝛩 𝐵𝛩𝑇' //ur bot name
+global.botname = 'Cheems Bot MD V15' //ur bot name
 global.ownernumber = ['994400324930'] //ur owner number, dont add more than one
 global.ownername = '🦄드림 가이 Xeon' //ur owner name
-global.websitex = "https://youtu.be/Ljt4MaHq1LM"
-global.wagc = "https://whatsapp.com/channel/0029VaJxI9uJkK7BedTH0D11"
+global.websitex = "https://youtu.be/tLq8_qOOGFI"
+global.wagc = "https://whatsapp.com/channel/0029VaG9VfPKWEKk1rxTQD20"
 global.themeemoji = '🪀'
-global.wm = "𝐆𝐎𝐉𝐎⚡𝐁𝐎𝐓."
-global.botscript = 'https://github.com/DGXeon/CheemsBot-MD13' //script link
+global.wm = "Xeon Bot Inc."
+global.botscript = 'https://github.com/DGXeon/CheemsBot-MD15' //script link
 global.packname = "Sticker By"
 global.author = "🦄드림 가이 Xeon\n\n+994400324930"
-global.creator = "916909137213@s.whatsapp.net"
+global.creator = "994400324930@s.whatsapp.net"
 global.xprefix = '.'
-global.premium = ["201208386317"] // Premium User
+global.premium = ["994400324930"] // Premium User
+
+//channel id
+global.xchannel = {
+	jid: '120363222395675670@newsletter'
+	}
 
 //bot sett
 global.typemenu = 'v12' // menu type 'v1' => 'v12'
@@ -70,6 +75,8 @@ global.game = {
 	kuismath: {},
 	tebakbom: {},
 }
+
+//~~~~~~~~~~~~~~~< PROCESS >~~~~~~~~~~~~~~~\\
 
 let file = require.resolve(__filename)
 fs.watchFile(file, () => {
