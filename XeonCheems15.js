@@ -16633,13 +16633,13 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
   }
 }
 break
-			case 'tiktok': case 'tiktokdown': case 'ttdown': case 'ttdl': case 'tt': case 'ttmp4': case 'ttvideo': case 'تيك': case 'tiktokvideo': {
+			case 'tiktok': case 'tiktokdown': case 'ttdown': case 'ttdl': case 'tt': case 'ttmp4': case 'ttvideo': case 'tiktokmp4': case 'tiktokvideo': {
 				if (!text) return replygcxeon(`Example: ${prefix + command} url_tiktok`)
 				if (!text.includes('tiktok.com')) return replygcxeon('Url Tidak Mengandung Result Dari Tiktok!')
 				const hasil = await tiktokDl(text);
 				XeonStickWait()
 				if (hasil.size_nowm) {
-					await XeonBotInc.sendFileUrl(m.chat, hasil.data `*╮┄╌〔 ≪ مـارو بـوت ≫ 〕╌╌•*\n*┆✔️ تفضل طلبك*\n*╯────ׂ─ׂ─ׂ─ׂ─────╌─╌─╌*`, m)
+					await XeonBotInc.sendFileUrl(m.chat, hasil.data[1].url, `*📍Title:* ${hasil.title}\n*⏳Duration:* ${hasil.duration}\n*🎃Author:* ${hasil.author.nickname} (@${hasil.author.fullname})`, m)
 				} else {
 					for (let i = 0; i < hasil.data.length; i++) {
 						await XeonBotInc.sendFileUrl(m.chat, hasil.data[i].url, `*🚀Image:* ${i+1}`, m)
