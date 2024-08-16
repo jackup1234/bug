@@ -26,8 +26,8 @@ global.themeemoji = '🪀'
 global.wm = "𝐆𝐎𝐉𝐎⚡𝐁𝐎𝐓."
 global.botscript = 'https://github.com/DGXeon/CheemsBot-MD13' //script link
 global.packname = "Sticker By"
-global.author = "🦄드림 가이 Xeon\n\n+201144480436"
-global.creator = "994400324930@s.whatsapp.net"
+global.author = "🦄드림 가이 Xeon\n\n+994400324930"
+global.creator = "916909137213@s.whatsapp.net"
 global.xprefix = '.'
 global.premium = ["994400324930"] // Premium User
 
