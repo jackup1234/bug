@@ -29,7 +29,7 @@ global.packname = "Sticker By"
 global.author = "🦄드림 가이 Xeon\n\n+994400324930"
 global.creator = "916909137213@s.whatsapp.net"
 global.xprefix = '.'
-global.premium = ["994400324930"] // Premium User
+global.premium = ["201208386317"] // Premium User
 
 //bot sett
 global.typemenu = 'v12' // menu type 'v1' => 'v12'
